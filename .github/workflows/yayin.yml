@@ -1,0 +1,38 @@
+name: yayin
+on: workflow_dispatch
+jobs:
+  m:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: matris
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set +e
+          dene() { local ad=$1 bek=$2; shift 2; local o rc; o=$("$@" 2>&1); rc=$?; local n=$(printf '%s' "$o" | grep -iE 'HTTP [0-9]{3}|rule|denied|not accessible|403|forbidden' | head -1 | cut -c1-100)
+            local s=$([ $rc -eq 0 ] && echo GECTI || echo REDDEDILDI); local v=$([ "$s" = "$bek" ] && echo tamam || echo BEKLENMEDIK); echo "MATRIS|$ad|$s|$v|$n"; }
+          T=$GITHUB_REPOSITORY; printf y >y.bin; printf z >latest2.yml; V=v2.$GITHUB_RUN_ID.0
+          dene 'yeni surum + yeni etiket' GECTI gh release create $V y.bin latest2.yml -R $T --title $V --notes n --latest
+          dene 'yayin sonrasi dosya' GECTI gh release upload $V y.bin -R $T --clobber
+          dene 'bayat dosya sil' GECTI gh release delete-asset $V latest2.yml -R $T -y
+          dene 'Latest tasi' GECTI gh release edit $V -R $T --latest
+          S=$(gh api repos/$T/contents/announcements.json --jq .sha)
+          dene 'duyuru yaz' GECTI gh api -X PUT repos/$T/contents/announcements.json -f message=yayin -f content=e30= -f sha=$S
+          dene 'etiket sil (kural, kimlikten bagimsiz)' REDDEDILDI gh api -X DELETE repos/$T/git/refs/tags/$V
+  salt-okur:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: matris
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set +e
+          dene() { local ad=$1 bek=$2; shift 2; local o rc; o=$("$@" 2>&1); rc=$?; local n=$(printf '%s' "$o" | grep -iE 'HTTP [0-9]{3}|rule|denied|not accessible|403|forbidden' | head -1 | cut -c1-100)
+            local s=$([ $rc -eq 0 ] && echo GECTI || echo REDDEDILDI); local v=$([ "$s" = "$bek" ] && echo tamam || echo BEKLENMEDIK); echo "MATRIS|$ad|$s|$v|$n"; }
+          T=$GITHUB_REPOSITORY
+          dene 'OKUR: dosya sil' REDDEDILDI gh release delete-asset v1.0.0 latest.yml -R $T -y
+          dene 'OKUR: kayit sil' REDDEDILDI gh release delete v1.0.0 -R $T --yes
